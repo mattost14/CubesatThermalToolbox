@@ -1,7 +1,12 @@
-close all
-clc
+clear all
+% close all
+% clc
 
-i=1; % X+
+run('inputs.m')
+
+[param, opt] = getSimulationParameters();
+
+i=6; % X+
 
 Fir=param.viewFactor.(i);
 Pir=param.Pir;
@@ -12,9 +17,21 @@ plot(param.solarLight.(i).*param.solarFlux,'DisplayName','Direct','LineWidth',2)
 ylim([0 1600])
 hold on
 yyaxis right
-plot(Fir .* Pir,'DisplayName','IR','LineWidth',2,'color','k')
-plot(Falb.* param.solarLight.magnitude.*param.solarFlux.*param.albedoFactor,'DisplayName','Albedo','LineWidth',2, 'color', 'b')
+IR = Fir .* Pir;
+plot(IR,'DisplayName','IR','LineWidth',2,'color','k')
+albedo = Falb.* param.solarLight.magnitude.*param.solarFlux.*param.albedoFactor;
+plot(albedo,'DisplayName','Albedo','LineWidth',2, 'color', 'b')
 ylim([0 400])
 
 set(gca,'FontSize',16)
 grid on
+
+
+time = seconds(param.solarLight.time);
+directSunEnergy = trapz(time, param.solarLight.(i).*param.solarFlux)/time(end);
+IRenergy = trapz(time, IR)/time(end);
+albedoEnergy = trapz(time, albedo)/time(end);
+
+disp(sprintf('Direct sunlight: %.2f W/m2', directSunEnergy))
+disp(sprintf('Earth IR: %.2f W/m2', IRenergy))
+disp(sprintf('Earth Albedo: %.2f W/m2', albedoEnergy))

@@ -1,1 +1,1 @@
-# cubesatThermalAnalysisToolbox
+# CubesatThermalToolbox

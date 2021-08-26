@@ -1,43 +1,52 @@
 %% INPUTS
 
 %% 1- SIMULATION
-simulationName = "NAPA-1";
+simulationName = "SPORT-1";
 opt.thermalAnalysis = 1; % boolean
 opt.powerAnalysis = 0; % boolean
 
 %% 2 - SATELLITE INFO
 
-satName = "NAPA-1";
+satName = "SPORT-1";
 numberOfUnits = 6; % options: 1, 3, 6, 12
-satelliteMass = 6.8; % kg
+satelliteMass = 8.44; % kg
+externalMassDistribution = [0.141,0.221,0.042,0.042,0.184,0.128]; % (optional) [X+,X-,Y+,Y-,Z+,Z-] (kg), Ex: SPORT: [.141,0.221,0.042,0.042,.184,0.128]
 
 % Choose the predomenant material type for each face
 % Options: "goldCoating", "solarCell", "whiteCoating", "blackCoating"
 % Check the getPropertiesFromMaterial.m file to see/edit thermal properties for each material
-% Xplus_faceMaterial = "goldCoating";
-% Xminus_faceMaterial = "whiteCoating";
-% Yplus_faceMaterial = "solarCell";
-% Yminus_faceMaterial = "solarCell";
-% Zplus_faceMaterial = "solarCell";
-% Zminus_faceMaterial = "solarCell";
-
-% NAPA-1
-Xplus_faceMaterial = "solarCell";
-Xminus_faceMaterial = "solarCell";
+Xplus_faceMaterial = "goldCoating";
+Xminus_faceMaterial = "whiteCoating";
 Yplus_faceMaterial = "solarCell";
-Yminus_faceMaterial = "blackCoating";
+Yminus_faceMaterial = "solarCell";
 Zplus_faceMaterial = "solarCell";
 Zminus_faceMaterial = "solarCell";
+
+
+
+% NAPA-1
+% Xplus_faceMaterial = "solarCell";
+% Xminus_faceMaterial = "solarCell";
+% Yplus_faceMaterial = "solarCell";
+% Yminus_faceMaterial = "blackCoating";
+% Zplus_faceMaterial = "solarCell";
+% Zminus_faceMaterial = "solarCell";
 
 %Face orientation control (rotation from the default configuration - see plot)
 attitude.orientationType = 'nadir';
 attitude.rotationAboutZ = 0;
 attitude.rotationAboutY = 0;
-attitude.rotationAboutX = 90;
+attitude.rotationAboutX = 0;
+
 
 % Thermal conductivity between internal node with each external surface
-payload2FacesConductivity = [1, 1, 1, 1, 1, 1]; % (W/K) Tips: 0-1: Low thermal conductivity, 1-4: Medium thermal conductivity, 4-8: High thermal conductivity
+payload2FacesConductivity = [43.28, 4.34, 0.63, .63, 1.26, 1.26]; % Cond:0 (SPORT: Information from Denis)
 
+% payload2FacesConductivity = [0.3, 0.3, 0.3,0.3,0.3,0.3]; % Cond:1
+% payload2FacesConductivity = [1, 1, 0.05, .05, .05, .05]; % Cond:2
+% payload2FacesConductivity = [0.05, 0.05, 0.05, .05, .05, .05]; % Cond:3 % (W/K) Tips: 0-0.05: Low thermal conductivity, 0.05-0.5: Medium thermal conductivity, 0.35-1: High thermal conductivity
+
+externalConductivityRelativeRatio = 0.01; % Conductivity between external nodes relative to aluminum box with 3mm thickness
 %% Ground Station (used to build Power Profile)
 
 groundStationName = 'SJC';
@@ -47,7 +56,7 @@ lon = -45.8916;
 
 %% Power Profile
 
-opt.mode = 0;
+opt.mode = 1;
 
 switch opt.mode
     case 0 %NAOA-1
@@ -85,19 +94,35 @@ aditionalPower = 1.2; % (W) battery heaters
 %% 3 - ORBITAL PARAMETERS
 
 centralBody = "earth"; % options: "earth", "moon"
-startTime = datetime(2020,06,01,"TimeZone","UTC"); %datetime(2025,03,14,"TimeZone","UTC");
-stopTime = startTime + days(1);
 sampleTime = 60; % (s)
 orbitPropagator = "sgp4"; % options: "two-body-keplerian", "sgp4", "sdp4"
 
-% Classical elements at start time
-semiMajorAxis = 6778.137e3; % m
-eccentricity = 0;
-inclination = 52.118; % deg
-rightAscensionOfAscendingNode = 96.355; % deg
-argumentOfPeriapsis = 0; % deg
-trueAnomaly = 108.192; % deg
+opt.orbit = 'hot';
 
+switch opt.orbit
+% Classical elements at start time
+    case 'hot'
+    disp('SPORT - Hot orbit')
+    startTime = datetime(2022,12,12,5,0,0, "TimeZone","UTC");
+    stopTime = startTime + days(2);
+    semiMajorAxis = 6778.137e3; % m
+    eccentricity = 0;
+    inclination = 52.580; % deg
+    rightAscensionOfAscendingNode = 190.158; % deg
+    argumentOfPeriapsis = 0; % deg
+    trueAnomaly = 32.690; % deg
+    
+    case 'cold'
+    disp('SPORT - Cold orbit')
+    startTime = datetime(2023,1,2,10,0,0, "TimeZone","UTC");
+    stopTime = startTime + days(1);
+    semiMajorAxis = 6778.137e3; % m
+    eccentricity = 0;
+    inclination = 52.722; % deg
+    rightAscensionOfAscendingNode = 86.424; % deg
+    argumentOfPeriapsis = 0; % deg
+    trueAnomaly = 94.418; % deg
+end
 % NAPA-1
 % semiMajorAxis = 6910.375681e3; % m
 % eccentricity = 0.001356;
@@ -109,7 +134,7 @@ trueAnomaly = 108.192; % deg
 %% 4 - Solar Panels
 
 solarCellEff = .28; % Solar Cell Efficiency
-effectiveAreaRatio = 0.75; % How much of the face area is effective covered by solar cells 
+effectiveAreaRatio = .6; %0.6; % How much of the face area is effectively covered by solar cells (60%: equivalent of 2 solar cells of 30.18cm2 per unit)
 
 %% 5 - Animation
 opt.showOrbitalAnimation = 0;% boolean

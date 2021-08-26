@@ -49,7 +49,7 @@ end
 
 %% Save Result
 
-filePath = strcat('Output/',param.simulationName,'_mode',num2str(opt.mode),'_out','.mat');
+filePath = strcat('Output/',param.simulationName,'_orb_',opt.orbit,'_mode',num2str(opt.mode),'_out','.mat');
 disp(strcat('Results saved in ~/', filePath));
 if(opt.thermalAnalysis && opt.powerAnalysis)
     save(filePath, 'T', 'P')

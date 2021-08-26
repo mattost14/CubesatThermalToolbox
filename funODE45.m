@@ -5,7 +5,7 @@ function dXdt = funODE45(t,X, param)
     for i=1:numberOfNodes % for all nodes
         % Conduction with other nodes
         for j=1:numberOfNodes
-            if(~isnan(param.Conductivity(i,j)))
+            if(~isnan(param.Conductivity(i,j)) && param.Conductivity(i,j))
                 mCpdXdt(i) = mCpdXdt(i) + (X(j)-X(i))*param.Conductivity(i,j);
             end
         end
@@ -30,20 +30,26 @@ function dXdt = funODE45(t,X, param)
             
             % Central Body IR
             Pir = interp1(seconds(param.viewFactor.time),param.Pir, t, 'nearest');   
-            mCpdXdt(i) = mCpdXdt(i) + Fir * Pir * param.absorptivity(i) * param.area(i);
+            mCpdXdt(i) = mCpdXdt(i) + Fir * Pir * param.emissivity(i) * param.area(i);
             
             % Solar flux (direct and albedo);
             solarIntensity = interp1(seconds(param.solarLight.time), param.solarLight.(i), t, 'nearest');
-            theta = interp1(seconds(param.albedoAngle.time), param.albedoAngle.AlbedoAngle_deg_, t, 'nearest');
-            Falb = Fir*max(0, cosd(theta));
-            if(solarIntensity)             
+            
+            if(solarIntensity)
+                if(size(param.albedoFactor,1)>1)
+                    albedoFactor = interp1(seconds(param.albedoAngle.time), param.albedoFactor, t, 'nearest');
+                else
+                    albedoFactor = param.albedoFactor;
+                end
+                theta = interp1(seconds(param.albedoAngle.time), param.albedoAngle.AlbedoAngle_deg_, t, 'nearest');
+                Falb = Fir*max(0, cosd(theta));
                 if(param.facesMaterial(i)=="solarCell") % If face is solar cell, check whether it is generating electrical energy or it is dissipating outside  
                     electricalEfficiency = interp1(seconds(param.solarLight.time), param.electricalEfficiency, t, 'nearest');
                     mCpdXdt(i) = mCpdXdt(i) + abs(solarIntensity) * param.solarFlux * param.area(i) * param.absorptivity(i) * (1-electricalEfficiency*param.solarCellEff); % Heat flux from direct solar light, discounting if it is generating electrical power
-                    mCpdXdt(i) = mCpdXdt(i) + Falb * param.solarFlux * param.area(i) * param.albedoFactor *  param.absorptivity(i) * (1-electricalEfficiency*param.solarCellEff); % Heat flux from albedo, discounting if it is generating electrical power
+                    mCpdXdt(i) = mCpdXdt(i) + Falb * param.solarFlux * param.area(i) * albedoFactor *  param.absorptivity(i) * (1-electricalEfficiency*param.solarCellEff); % Heat flux from albedo, discounting if it is generating electrical power
                 else
                     mCpdXdt(i) = mCpdXdt(i) + abs(solarIntensity) * param.solarFlux * param.area(i) * param.absorptivity(i); % Heat flux from firect solar light
-                    mCpdXdt(i) = mCpdXdt(i) + Falb * param.solarFlux * param.area(i) *param.albedoFactor *  param.absorptivity(i); % Heat flux from albedo
+                    mCpdXdt(i) = mCpdXdt(i) + Falb * param.solarFlux * param.area(i) * albedoFactor *  param.absorptivity(i); % Heat flux from albedo
                 end                   
             end
         

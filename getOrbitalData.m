@@ -101,9 +101,12 @@ orb.solarLight = solarLight;
 %% IR and Albedo
 
 % Albedo Angle: angle(Earth->Sat, Earth->Sun)
-AlbedoAngle_deg_ = ones(length(time_Epoch),1);
+AlbedoAngle_deg_ = zeros(length(time_Epoch),1);
+satLat_deg = zeros(length(time_Epoch),1);
 for i=1:length(time_Epoch)
     AlbedoAngle_deg_(i) = calculateAngleBetweenVectors(sat_pos_ECI(i,:), sun_pos_ECI(i,:));
+    %Calculating satellite underneath latitude
+    satLat_deg(i) = 90-calculateAngleBetweenVectors(sat_pos_ECI(i,:), [0,0,1]);
 end
 albedoAngle(:,1) = time_Epoch;
 albedoAngle(:,2) = AlbedoAngle_deg_;
@@ -111,7 +114,17 @@ albedoAngle = array2table(albedoAngle);
 albedoAngle.Properties.VariableNames = {'time','AlbedoAngle_deg_'};
 albedoAngle.time = seconds(albedoAngle.time);
 albedoAngle = table2timetable(albedoAngle);
-albedoFactor = getCentralBodyProperties(centralBody).albedoFactor;
+
+if(isfield(getCentralBodyProperties(centralBody),'albedoFactorByLatitudeTable'))
+    albedoFactorByLatitude = load(getCentralBodyProperties(centralBody).albedoFactorByLatitudeTable, 'data');
+    albedoFactorByLatitude = albedoFactorByLatitude.data;
+    albedoFactor = zeros(length(time_Epoch),1);
+    for i=1:length(time_Epoch)
+        albedoFactor(i) = interp1(albedoFactorByLatitude.Lat, albedoFactorByLatitude.Albedo, satLat_deg(i), 'nearest');
+    end
+else
+    albedoFactor = getCentralBodyProperties(centralBody).albedoFactor;
+end
 
 orb.albedoAngle = albedoAngle;
 orb.albedoFactor = albedoFactor;

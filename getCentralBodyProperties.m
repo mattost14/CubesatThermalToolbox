@@ -5,6 +5,7 @@ function p = getCentralBodyProperties(body)
             p.Tir_Night = 254;%default: 254; % Black-body temp during night time (K)
             p.radius = 6371; % Radius (km)
             p.albedoFactor = 0.3; % Albedo
+            p.albedoFactorByLatitudeTable = 'EarthAlbedoByLatitude.mat'; % If this field exists, then the albedoFactor will be calculate from table instead of using the albedoFactor average value
             p.solarFlux = 1367; % Solar flux (W/m2)
             p.GM = 3.986004418e14; % Standard gravitational parameter (m3s−2)
         case 'moon'

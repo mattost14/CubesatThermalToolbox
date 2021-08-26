@@ -1,8 +1,8 @@
 function p = getPropertiesFromMaterial(material)
     switch material
         case 'solarCell'
-            p.Cp = 1164; % Specific heat (J/(kg*K)) FR4: 1164 J/(kg*K)
-            p.rho = 1809; % Density (kg/m3)
+            p.Cp = 1164; % Specific heat (J/(kg*K))
+            p.rho = 5253; % Density (kg/m3)
             p.absorp = 0.95; % Absorptivity Solar
             p.emiss = 0.95; % Emissivity Solar
         case 'blackCoating'
